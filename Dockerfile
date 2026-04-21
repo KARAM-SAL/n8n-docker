@@ -32,6 +32,7 @@ COPY --from=poppler-builder /usr/lib/libwebp* /usr/lib/
 COPY --from=poppler-builder /usr/lib/libsharpyuv* /usr/lib/
 
 # Install ghostscript for full PDF rendering (required by pdf-to-img community node)
+USER root
 RUN apt-get update && apt-get install -y ghostscript && rm -rf /var/lib/apt/lists/*
 
 # Install exceljs globally so the Code Node can find it
