@@ -1,43 +1,30 @@
-# Stage 1: Install system deps in Alpine (n8n's base is Alpine with apk removed)
+# Stage 1: Install all system deps and collect their shared libraries
 FROM node:24-alpine AS deps-builder
 RUN apk add --no-cache poppler-utils ghostscript
+
+# Automatically find ALL shared library dependencies for gs and poppler tools
+RUN mkdir -p /deps/bin /deps/lib /deps/share \
+    && cp /usr/bin/gs /deps/bin/ \
+    && cp /usr/bin/pdftotext /usr/bin/pdftoppm /usr/bin/pdfinfo \
+       /usr/bin/pdfunite /usr/bin/pdfseparate /deps/bin/ \
+    && cp -r /usr/share/ghostscript /deps/share/ \
+    && for bin in gs pdftotext pdftoppm pdfinfo pdfunite pdfseparate; do \
+         ldd /usr/bin/$bin 2>/dev/null \
+         | grep "=> /" \
+         | awk '{print $3}'; \
+       done | sort -u | while read lib; do \
+         cp "$lib" /deps/lib/ 2>/dev/null || true; \
+       done
 
 # Stage 2: The actual n8n image
 FROM n8nio/n8n:latest
 
 USER root
 
-# Copy poppler binaries and libraries from the builder stage
-COPY --from=deps-builder /usr/bin/pdftotext /usr/bin/pdftotext
-COPY --from=deps-builder /usr/bin/pdftoppm /usr/bin/pdftoppm
-COPY --from=deps-builder /usr/bin/pdfinfo /usr/bin/pdfinfo
-COPY --from=deps-builder /usr/bin/pdfunite /usr/bin/pdfunite
-COPY --from=deps-builder /usr/bin/pdfseparate /usr/bin/pdfseparate
-COPY --from=deps-builder /usr/lib/libpoppler* /usr/lib/
-COPY --from=deps-builder /usr/lib/libjpeg* /usr/lib/
-COPY --from=deps-builder /usr/lib/libpng* /usr/lib/
-COPY --from=deps-builder /usr/lib/libtiff* /usr/lib/
-COPY --from=deps-builder /usr/lib/liblcms2* /usr/lib/
-COPY --from=deps-builder /usr/lib/libopenjp2* /usr/lib/
-COPY --from=deps-builder /usr/lib/libfreetype* /usr/lib/
-COPY --from=deps-builder /usr/lib/libfontconfig* /usr/lib/
-COPY --from=deps-builder /usr/lib/libexpat* /usr/lib/
-COPY --from=deps-builder /usr/lib/libbrotli* /usr/lib/
-COPY --from=deps-builder /usr/lib/libbz2* /usr/lib/
-COPY --from=deps-builder /usr/lib/libstdc++* /usr/lib/
-COPY --from=deps-builder /usr/lib/libgcc_s* /usr/lib/
-COPY --from=deps-builder /usr/lib/libzstd* /usr/lib/
-COPY --from=deps-builder /usr/lib/liblzma* /usr/lib/
-COPY --from=deps-builder /usr/lib/libwebp* /usr/lib/
-COPY --from=deps-builder /usr/lib/libsharpyuv* /usr/lib/
-
-# Copy Ghostscript binary and libraries (needed by pdf-img-convert / n8n-nodes-pdfconvert)
-# GraphicsMagick is already included in the n8n base image
-COPY --from=deps-builder /usr/bin/gs /usr/bin/gs
-COPY --from=deps-builder /usr/lib/libgs* /usr/lib/
-COPY --from=deps-builder /usr/lib/libidn* /usr/lib/
-COPY --from=deps-builder /usr/lib/libpaper* /usr/lib/
-COPY --from=deps-builder /usr/share/ghostscript /usr/share/ghostscript
+# Copy all collected binaries, libraries, and ghostscript data
+COPY --from=deps-builder /deps/bin/ /usr/bin/
+COPY --from=deps-builder /deps/lib/ /usr/lib/
+COPY --from=deps-builder /deps/share/ghostscript /usr/share/ghostscript
 
 # Install exceljs globally so the Code Node can find it
 RUN npm install -g exceljs
