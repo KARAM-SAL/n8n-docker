@@ -37,6 +37,11 @@ RUN npm install -g exceljs
 # Remove node-npm-pdf2image — it does not support Linux and causes crashes
 RUN npm uninstall -g node-npm-pdf2image || true
 
+# Install Python3 + pip, then install pdf2image so Code Nodes can convert PDFs to images
+# using the poppler binaries already present in this image
+RUN apk add --no-cache python3 py3-pip \
+    && pip3 install --break-system-packages pdf2image
+
 # Create a persistent data directory
 RUN mkdir -p /data && chmod 777 /data
 
