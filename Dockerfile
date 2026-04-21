@@ -1,6 +1,6 @@
 # Stage 1: Install poppler-utils in Alpine (same base as n8n)
 FROM node:24-alpine AS poppler-builder
-RUN apk add --no-cache poppler-utils ghostscript
+RUN apk add --no-cache poppler-utils ghostscript graphicsmagick
 
 # Stage 2: The actual n8n image
 FROM n8nio/n8n:latest
@@ -30,6 +30,11 @@ COPY --from=poppler-builder /usr/lib/libzstd* /usr/lib/
 COPY --from=poppler-builder /usr/lib/liblzma* /usr/lib/
 COPY --from=poppler-builder /usr/lib/libwebp* /usr/lib/
 COPY --from=poppler-builder /usr/lib/libsharpyuv* /usr/lib/
+
+# Copy GraphicsMagick binary and libraries from the builder stage
+COPY --from=poppler-builder /usr/bin/gm /usr/bin/gm
+COPY --from=poppler-builder /usr/lib/libGraphicsMagick* /usr/lib/
+COPY --from=poppler-builder /usr/lib/libGraphicsMagickWand* /usr/lib/
 
 # Install exceljs globally so the Code Node can find it
 RUN npm install -g exceljs
