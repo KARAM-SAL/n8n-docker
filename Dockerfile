@@ -1,21 +1,20 @@
-# We specify -alpine to ensure 'apk' exists
-FROM n8nio/n8n:latest-alpine
+# 1. Use the correct Alpine tag
+FROM n8nio/n8n:alpine
 
 USER root
 
-# 1. Install dependencies using Alpine's manager (apk)
+# 2. Install poppler-utils (Alpine uses apk)
 RUN apk add --no-cache poppler-utils
 
-# 2. Install exceljs globally
+# 3. Install exceljs globally so the Code Node can find it
 RUN npm install -g exceljs
 
-# 3. Create a data directory that is completely wide open
-# This fixes the "EACCES: permission denied" error
+# 4. Create a data directory at the root to avoid permission ghosts
 RUN mkdir -p /data && chmod 777 /data
 
-# 4. Tell n8n to use this new folder
+# 5. Tell n8n where to save everything
 ENV N8N_USER_FOLDER=/data
 ENV NODE_PATH=/usr/local/lib/node_modules
 
-# Stay as root to bypass all permission hurdles on Railway
+# Stay as root so Railway volumes don't lock you out
 USER root
