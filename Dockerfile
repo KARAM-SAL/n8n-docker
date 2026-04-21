@@ -46,4 +46,7 @@ ENV NODE_PATH=/usr/local/lib/node_modules
 # Stay as root — Railway volumes mount as root
 USER root
 
+# Install GraphicsMagick and Ghostscript for n8n-nodes-pdfconvert (pdf-img-convert)
+RUN apt-get update && apt-get install -y graphicsmagick ghostscript && rm -rf /var/lib/apt/lists/*
+
 EXPOSE 5678
