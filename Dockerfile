@@ -7,9 +7,6 @@ FROM n8nio/n8n:latest
 
 USER root
 
-# Install GraphicsMagick natively so gm can find its config in Debian locations
-RUN apt-get update && apt-get install -y graphicsmagick && rm -rf /var/lib/apt/lists/*
-
 # Copy poppler binaries and libraries from the builder stage
 COPY --from=poppler-builder /usr/bin/pdftotext /usr/bin/pdftotext
 COPY --from=poppler-builder /usr/bin/pdftoppm /usr/bin/pdftoppm
