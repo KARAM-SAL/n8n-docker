@@ -34,6 +34,9 @@ COPY --from=poppler-builder /usr/lib/libsharpyuv* /usr/lib/
 # Install exceljs globally so the Code Node can find it
 RUN npm install -g exceljs
 
+# Remove node-npm-pdf2image — it does not support Linux and causes crashes
+RUN npm uninstall -g node-npm-pdf2image || true
+
 # Create a persistent data directory
 RUN mkdir -p /data && chmod 777 /data
 
