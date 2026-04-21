@@ -11,8 +11,8 @@ RUN sed -i 's/deb.debian.org/archive.debian.org/g' /etc/apt/sources.list && \
     apt-get install -y poppler-utils && \
     rm -rf /var/lib/apt/lists/*
 
-# 2. Ensure the 'node' user owns the necessary directories
-# This prevents the "operation not permitted" error
-RUN chown -R node:node /home/node/.n8n
+# 2. Create the directory and set permissions
+# 'mkdir -p' makes the folder if it's missing; then we hand it to the node user
+RUN mkdir -p /home/node/.n8n && chown -R node:node /home/node/.n8n
 
 USER node
