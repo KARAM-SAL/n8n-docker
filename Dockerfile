@@ -1,5 +1,5 @@
 FROM n8nio/n8n
 
 USER root
-RUN apt-get update && apt-get install -y poppler-utils
+RUN apk add --no-cache poppler-utils
 USER node
