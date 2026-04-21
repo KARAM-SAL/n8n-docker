@@ -35,7 +35,7 @@ COPY --from=poppler-builder /usr/lib/libsharpyuv* /usr/lib/
 COPY --from=poppler-builder /usr/bin/gm /usr/bin/gm
 COPY --from=poppler-builder /usr/lib/libGraphicsMagick* /usr/lib/
 COPY --from=poppler-builder /usr/lib/libGraphicsMagickWand* /usr/lib/
-COPY --from=poppler-builder /etc/GraphicsMagick /etc/GraphicsMagick
+COPY --from=poppler-builder /usr/lib/GraphicsMagick /usr/lib/GraphicsMagick
 
 # Install exceljs globally so the Code Node can find it
 RUN npm install -g exceljs
