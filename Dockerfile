@@ -1,20 +1,23 @@
-# 1. Use the correct Alpine tag
-FROM n8nio/n8n:alpine
+# Use the official n8n image (already Alpine-based)
+FROM n8nio/n8n:latest
 
 USER root
 
-# 2. Install poppler-utils (Alpine uses apk)
+# Install poppler-utils (for PDF processing)
 RUN apk add --no-cache poppler-utils
 
-# 3. Install exceljs globally so the Code Node can find it
+# Install exceljs globally so the Code Node can find it
 RUN npm install -g exceljs
 
-# 4. Create a data directory at the root to avoid permission ghosts
+# Create a persistent data directory
 RUN mkdir -p /data && chmod 777 /data
 
-# 5. Tell n8n where to save everything
-ENV N8N_USER_FOLDER=/data
+# Make globally installed npm modules available to Code Nodes
 ENV NODE_PATH=/usr/local/lib/node_modules
 
-# Stay as root so Railway volumes don't lock you out
+# Stay as root — Railway volumes mount as root and will cause
+# permission errors if n8n runs as the 'node' user.
+# (Your Railway env var N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS=false handles this)
 USER root
+
+EXPOSE 5678
