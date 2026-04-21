@@ -1,6 +1,6 @@
 # Stage 1: Install poppler-utils in Alpine (same base as n8n)
 FROM node:24-alpine AS poppler-builder
-RUN apk add --no-cache poppler-utils
+RUN apk add --no-cache poppler-utils ghostscript
 
 # Stage 2: The actual n8n image
 FROM n8nio/n8n:latest
@@ -31,20 +31,11 @@ COPY --from=poppler-builder /usr/lib/liblzma* /usr/lib/
 COPY --from=poppler-builder /usr/lib/libwebp* /usr/lib/
 COPY --from=poppler-builder /usr/lib/libsharpyuv* /usr/lib/
 
-# Install ghostscript for full PDF rendering (required by pdf-to-img community node)
-USER root
-RUN apt-get update && apt-get install -y ghostscript && rm -rf /var/lib/apt/lists/*
-
 # Install exceljs globally so the Code Node can find it
 RUN npm install -g exceljs
 
 # Remove node-npm-pdf2image — it does not support Linux and causes crashes
 RUN npm uninstall -g node-npm-pdf2image || true
-
-# Install Python3 + pip, then install pdf2image so Code Nodes can convert PDFs to images
-# using the poppler binaries already present in this image
-RUN apk add --no-cache python3 py3-pip \
-    && pip3 install --break-system-packages pdf2image
 
 # Create a persistent data directory
 RUN mkdir -p /data && chmod 777 /data
