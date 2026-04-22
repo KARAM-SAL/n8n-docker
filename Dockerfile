@@ -27,13 +27,12 @@ COPY --from=deps-builder /deps/lib/ /usr/lib/
 COPY --from=deps-builder /deps/share/ghostscript /usr/share/ghostscript
 
 # Install exceljs globally so the Code Node can find it
-RUN npm install -g exceljs
+RUN cd /usr/local/lib/node_modules/n8n && npm install exceljs
 
 # Create a persistent data directory
 RUN mkdir -p /data && chmod 777 /data
 
-# Make globally installed npm modules available to Code Nodes
-ENV NODE_PATH=/usr/local/lib/node_modules
+
 
 # Stay as root — Railway volumes mount as root
 USER root
