@@ -6,6 +6,9 @@ on:
     - cron: '0 3 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   redeploy:
     runs-on: ubuntu-latest
@@ -13,8 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Update timestamp to trigger redeploy
-        run: |
-          echo "Last redeploy: $(date -u)" > .redeploy-timestamp
+        run: echo "Last redeploy: $(date -u)" > .redeploy-timestamp
       
       - name: Commit and push
         run: |
