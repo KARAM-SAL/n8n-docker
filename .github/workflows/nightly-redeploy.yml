@@ -1,15 +1,50 @@
-name: Nightly Redeploy
+name: Nightly Security Update Redeploy
+
 on:
   schedule:
+    # Runs daily at 03:23 UTC to pull latest n8n image with security patches
     - cron: '23 3 * * *'
   workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason for manual redeploy'
+        required: false
+        default: 'Manual security redeploy'
+        type: choice
+        options:
+          - 'Manual security redeploy'
+          - 'Emergency security patch'
+          - 'Testing'
 
 jobs:
   redeploy:
+    name: Redeploy n8n for security updates
     runs-on: ubuntu-latest
-    container: ghcr.io/railwayapp/cli:latest
+    timeout-minutes: 10
+    container:
+      image: ghcr.io/railwayapp/cli:latest
+      options: --user root
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
     steps:
-      - name: Redeploy n8n service
-        run: railway redeploy --service ${{ secrets.RAILWAY_SERVICE_ID }} --yes
+      - name: Verify Railway CLI
+        run: railway --version
+
+      - name: Check current service status
+        run: railway status --service ${{ secrets.RAILWAY_SERVICE_ID }} --json
+        continue-on-error: true
+
+      - name: Trigger security update redeploy
+        run: |
+          echo "🔒 Triggering nightly security update redeploy..."
+          echo "Service: ${{ secrets.RAILWAY_SERVICE_ID }}"
+          echo "Reason: ${{ github.event.inputs.reason || 'Scheduled nightly security update' }}"
+          railway redeploy --service ${{ secrets.RAILWAY_SERVICE_ID }} --yes
+          echo "✅ Redeploy triggered successfully"
+
+      - name: Verify deployment health
+        run: |
+          echo "⏳ Waiting for deployment to stabilize..."
+          sleep 30
+          railway status --service ${{ secrets.RAILWAY_SERVICE_ID }} --json
+        continue-on-error: true
