@@ -36,6 +36,9 @@ RUN mkdir -p /data && chmod 777 /data
 ENV NODE_PATH=/opt/custom-nodes/node_modules
 ENV NODE_FUNCTION_ALLOW_EXTERNAL=exceljs
 
+# Trust proxy headers from Railway's reverse proxy (fixes X-Forwarded-For rate limiting error)
+ENV N8N_PROXY_HOPS=1
+
 # Stay as root — Railway volumes mount as root
 USER root
 
