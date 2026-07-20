@@ -27,14 +27,17 @@ COPY --from=deps-builder /deps/lib/ /usr/lib/
 COPY --from=deps-builder /deps/share/ghostscript /usr/share/ghostscript
 
 # Install exceljs in a dedicated directory (can't use n8n's dir — it uses pnpm catalogs)
-RUN mkdir -p /opt/custom-nodes && cd /opt/custom-nodes && npm init -y && npm install exceljs
-
+RUN mkdir -p /opt/custom-nodes \
+    && cd /opt/custom-nodes \
+    && npm init -y \
+    && npm install exceljs sharp
+    
 # Create a persistent data directory
 RUN mkdir -p /data && chmod 777 /data
 
 # Make custom packages visible to n8n + its JS Task Runner, and allow Code Nodes to use them
 ENV NODE_PATH=/opt/custom-nodes/node_modules
-ENV NODE_FUNCTION_ALLOW_EXTERNAL=exceljs
+ENV NODE_FUNCTION_ALLOW_EXTERNAL=exceljs,sharp
 
 # Stay as root — Railway volumes mount as root
 USER root
